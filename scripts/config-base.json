@@ -1,0 +1,30 @@
+{
+  "expected-versions": {
+    "clang-format": ">=16.0.5,<17.0.0",
+    "cmake": ">=3.27.2,<3.30.0",
+    "ninja": ">=1.11.1,<2.0.0",
+    "vcpkg": "=2023.12.12"
+  },
+  "build-log-path": null,
+  "build-path-suffix": "",
+  "python-packages-path": "./dependencies/pip",
+  "vendor": "none",
+  "vcpkg-assets-cache-path": "~/vcpkg_cache/assetcache",
+  "vcpkg-assets-cache-readonly": false,
+  "vcpkg-binary-cache-path": "~/vcpkg_cache/${target-architecture}${target-sub-architecture}-${target-system}-${vendor}-${cpp-runtime}",
+  "vcpkg-binary-cache-readonly": false,
+  "vcpkg-buildtrees-root": "~/vcpkg_cache/build",
+  "vcpkg-debug": true,
+  "vcpkg-overlay-ports": "./dependencies/vcpkg_ports",
+  "vcpkg-overlay-triplets": "./dependencies/vcpkg_triplets",
+  "vcpkg-path": "./dependencies/vcpkg",
+  "definitions": {
+    "USE_ADDRESS_SANITIZER": false,
+    "USE_CPP20_MODULES": false,
+    "USE_CPP_TOOLSET_VERSION_CHECK": true,
+    "USE_DEVELOPMENT_VERSION": true,
+    "USE_DIRTY_BUILD_CHECK": true,
+    "USE_GOOGLE_CRASHPAD": true,
+    "USE_TARGET_FOLDERS": false
+  }
+}

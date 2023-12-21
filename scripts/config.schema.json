@@ -1,0 +1,206 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "build-log-path": {
+      "type": ["string", "null"]
+    },
+    "build-path-suffix": {
+      "type": "string"
+    },
+    "cpp-build-system": {
+      "enum": [
+        "msbuild",
+        "ninja"
+      ],
+      "type": "string"
+    },
+    "cpp-runtime": {
+      "enum": [
+        "vc141",
+        "vc142",
+        "vc143",
+        "libstdc++",
+        "libc++"
+      ],
+      "type": "string"
+    },
+    "cpp-toolset": {
+      "enum": [
+        "msvc17",
+        "gcc",
+        "clang"
+      ],
+      "type": "string"
+    },
+    "cpp-toolset-version": {
+      "type": "string"
+    },
+    "definitions": {
+      "additionalProperties": false,
+      "properties": {
+        "USE_ADDRESS_SANITIZER": {
+          "type": "boolean"
+        },
+        "USE_CPP20_MODULES": {
+          "type": "boolean"
+        },
+        "USE_CPP_TOOLSET_VERSION_CHECK": {
+          "type": "boolean"
+        },
+        "USE_DEVELOPMENT_VERSION": {
+          "type": "boolean"
+        },
+        "USE_DIRTY_BUILD_CHECK": {
+          "type": "boolean"
+        },
+        "USE_GOOGLE_CRASHPAD": {
+          "type": "boolean"
+        },
+        "USE_TARGET_FOLDERS": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "USE_ADDRESS_SANITIZER",
+        "USE_CPP20_MODULES",
+        "USE_CPP_TOOLSET_VERSION_CHECK",
+        "USE_DEVELOPMENT_VERSION",
+        "USE_DIRTY_BUILD_CHECK",
+        "USE_GOOGLE_CRASHPAD",
+        "USE_TARGET_FOLDERS"
+      ],
+      "type": "object"
+    },
+    "environment": {
+      "additionalProperties": true,
+      "properties": {
+        "CC": {
+          "type": "string"
+        },
+        "CXX": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "expected-versions": {
+      "additionalProperties": false,
+      "properties": {
+        "clang-format": {
+          "type": "string"
+        },
+        "cmake": {
+          "type": "string"
+        },
+        "ninja": {
+          "type": "string"
+        },
+        "vcpkg": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "clang-format",
+        "cmake",
+        "ninja",
+        "vcpkg"
+      ],
+      "type": "object"
+    },
+    "msvs-installer-path": {
+      "type": "string"
+    },
+    "python-packages-path": {
+      "type": "string"
+    },
+    "target-architecture": {
+      "enum": [
+        "x86_64",
+        "arm",
+        "aarch64"
+      ],
+      "type": "string"
+    },
+    "target-sub-architecture": {
+      "enum": [
+        "",
+        "v5",
+        "v6m",
+        "v7a",
+        "v7m"
+      ],
+      "type": "string"
+    },
+    "target-system": {
+      "enum": [
+        "linux",
+        "windows"
+      ],
+      "type": "string"
+    },
+    "target-triplet": {
+      "type": "string"
+    },
+    "vcpkg-assets-cache-path": {
+      "type": "string"
+    },
+    "vcpkg-assets-cache-readonly": {
+      "type": "boolean"
+    },
+    "vcpkg-binary-cache-path": {
+      "type": "string"
+    },
+    "vcpkg-binary-cache-readonly": {
+      "type": "boolean"
+    },
+    "vcpkg-buildtrees-root": {
+      "type": "string"
+    },
+    "vcpkg-debug": {
+      "type": "boolean"
+    },
+    "vcpkg-overlay-ports": {
+      "type": "string"
+    },
+    "vcpkg-overlay-triplets": {
+      "type": "string"
+    },
+    "vcpkg-path": {
+      "type": "string"
+    },
+    "vcpkg-reuse-suffix": {
+      "type": "string"
+    },
+    "vendor": {
+      "type": "string"
+    },
+    "windows-sdk-version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "build-log-path",
+    "build-path-suffix",
+    "cpp-build-system",
+    "cpp-runtime",
+    "cpp-toolset-version",
+    "cpp-toolset",
+    "definitions",
+    "environment",
+    "expected-versions",
+    "python-packages-path",
+    "target-architecture",
+    "target-sub-architecture",
+    "target-system",
+    "target-triplet",
+    "vendor",
+    "vcpkg-debug",
+    "vcpkg-assets-cache-path",
+    "vcpkg-assets-cache-readonly",
+    "vcpkg-binary-cache-path",
+    "vcpkg-binary-cache-readonly",
+    "vcpkg-buildtrees-root",
+    "vcpkg-path"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,6 @@
+[submodule "dependencies/libsodium.js"]
+	path = dependencies/libsodium.js
+	url = git@github.com:cspanier/libsodium.js.git
+[submodule "dependencies/vcpkg"]
+	path = dependencies/vcpkg
+	url = git@github.com:microsoft/vcpkg.git

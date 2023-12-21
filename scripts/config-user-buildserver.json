@@ -1,0 +1,8 @@
+{
+  "vcpkg-assets-cache-readonly": true,
+  "vcpkg-binary-cache-readonly": false,
+  "definitions": {
+    "USE_DEVELOPMENT_VERSION": false,
+    "USE_DIRTY_BUILD_CHECK": true
+  }
+}

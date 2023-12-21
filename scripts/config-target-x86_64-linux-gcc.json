@@ -1,0 +1,16 @@
+{
+  "target-triplet": "x86_64-linux-gcc",
+  "target-architecture": "x86_64",
+  "target-sub-architecture": "",
+  "target-system": "linux",
+  "cpp-build-system": "ninja",
+  "cpp-toolset": "gcc",
+  "cpp-toolset-version": "13.2.1",
+  "cpp-runtime": "libstdc++",
+  "environment": {
+    "CC": "gcc",
+    "CXX": "g++"
+  },
+  "definitions": {
+  }
+}

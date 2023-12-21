@@ -1,0 +1,16 @@
+{
+  "target-triplet": "x86_64-linux-clang",
+  "target-architecture": "x86_64",
+  "target-sub-architecture": "",
+  "target-system": "linux",
+  "cpp-build-system": "ninja",
+  "cpp-toolset": "clang",
+  "cpp-toolset-version": "16.0.6",
+  "cpp-runtime": "libstdc++",
+  "environment": {
+    "CC": "clang",
+    "CXX": "clang++"
+  },
+  "definitions": {
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "vendor": "none_asan",
+  "definitions": {
+    "USE_ADDRESS_SANITIZER": true
+  }
+}
