@@ -14,11 +14,10 @@ import subprocess
 import sys
 from timeit import default_timer as timer
 import traceback
-from urllib.parse import unquote, urlparse
 
 if sys.prefix == sys.base_prefix:
     raise RuntimeError(
-        f'This script is intended to be run from a virtual Python environment.')
+        'This script is intended to be run from a virtual Python environment.')
 
 def version_to_str(version):
     return '.'.join(map(str, version))
@@ -54,16 +53,6 @@ def check_version(version, version_constrtaints):
     return True
 
 
-scripts_path = Path(__file__).parent.absolute()
-base_path = scripts_path.parent
-os.chdir(base_path)
-if platform.system() == "Windows":
-    # On Windows the outer .cmd script makes use of the "choice" program,
-    # which for some reason disables interpretation of VT100 escape sequences.
-    # This is a dirty hack to re-enable VT100 support by starting an empty shell
-    os.system('')
-
-
 class Builder:
     def __init__(self):
         self.environment = os.environ.copy()
@@ -77,6 +66,10 @@ class Builder:
                 'Unknown host system {}.'.format(architecture))
         self.host_system = platform.system().lower()
 
+        self.scripts_path = Path(__file__).parent.absolute()
+        self.base_path = self.scripts_path.parent
+        os.chdir(self.base_path)
+
         self.env_cc = self.environment['CC'] if 'CC' in self.environment else None
         self.env_cxx = self.environment['CXX'] if 'CXX' in self.environment else None
 
@@ -84,11 +77,11 @@ class Builder:
             description='Prepare environment and call cmake.')
         parser.add_argument('configs_json', nargs='+')
         parser.add_argument('--drop-to-shell', action='store_const', const=True, default=False,
-                            help='Drop to fully configured command shell after calling CMake.')
+                            help='Drop to fully configured command shell right before calling CMake.')
         args = parser.parse_args()
         self.drop_to_shell = args.drop_to_shell
 
-        with open(scripts_path / "config.schema.json", "r") as config_schema_file:
+        with open(self.scripts_path / "config.schema.json", "r") as config_schema_file:
             config_schema = json.load(config_schema_file)
         for config_json in sorted(args.configs_json):
             self._load_config(config_json)
@@ -110,11 +103,10 @@ class Builder:
             self.env_cc = self.config['environment']['CC']
         if 'CXX' in self.config['environment']:
             self.env_cxx = self.config['environment']['CXX']
-        self.vcpkg_path = Path(os.path.expanduser(self.config['vcpkg-path'].replace('\\', '/')))
+        self.vcpkg_path = self._expand_path(self.config['vcpkg-path'])
         if not self.vcpkg_path.is_absolute():
-            self.vcpkg_path = base_path / self.vcpkg_path
-        self.vcpkg_buildtrees_root = Path(os.path.expanduser(
-            self.config['vcpkg-buildtrees-root'].replace('\\', '/')))
+            self.vcpkg_path = self.base_path / self.vcpkg_path
+        self.vcpkg_buildtrees_root = self._expand_path(self.config['vcpkg-buildtrees-root'])
         self.definitions = self.config['definitions']
         self.cpp_toolset = self.config['cpp-toolset']
         self.cpp_runtime = self.config['cpp-runtime']
@@ -155,8 +147,7 @@ class Builder:
         # self.environment['CC'] = str(self.env_cc)
         # self.environment['CXX'] = str(self.env_cxx)
 
-        vcpkg_assets_cache_path = Path(os.path.expanduser(
-            self.config['vcpkg-assets-cache-path'].replace('\\', '/')))
+        vcpkg_assets_cache_path = self._expand_path(self.config['vcpkg-assets-cache-path'])
         if ',;' in str(vcpkg_assets_cache_path):
             raise RuntimeError(f'The vcpkg assets cache path "{vcpkg_assets_cache_path}" ' +
                                'must neither contain comma (",") nor semicolon (";") characters.')
@@ -164,9 +155,9 @@ class Builder:
             print(f'Creating non-existent vcpkg assets cache path "{vcpkg_assets_cache_path}"... ', end='')
             try:
                 vcpkg_assets_cache_path.mkdir(parents=True, exist_ok=True)
-                print(f'OK')
-            except Exception as ex:
-                print(f'Error: Cannot create path.')
+                print('OK')
+            except Exception:
+                print('Error: Cannot create path.')
                 exit(1)
         if self.config['vcpkg-assets-cache-readonly']:
             vcpkg_asset_cache_rw = 'read;x-block-origin'
@@ -174,14 +165,7 @@ class Builder:
             vcpkg_asset_cache_rw = 'readwrite'
         self.vcpkg_asset_sources = f'clear;x-azurl,file:///{vcpkg_assets_cache_path},,{vcpkg_asset_cache_rw}'
 
-        vcpkg_binary_cache_path = Path(os.path.expanduser(
-            self.config['vcpkg-binary-cache-path']
-            .replace('\\', '/')
-            .replace('${target-architecture}', self.target_architecture)
-            .replace('${target-sub-architecture}', self.target_sub)
-            .replace('${target-system}', self.target_system)
-            .replace('${vendor}', self.vendor)
-            .replace('${cpp-runtime}', self.cpp_runtime)))
+        vcpkg_binary_cache_path = self._expand_path(self.config['vcpkg-binary-cache-path'])
         if ',;' in str(vcpkg_binary_cache_path):
             raise RuntimeError(f'The vcpkg binary cache path "{vcpkg_binary_cache_path}" ' +
                                'must neither contain comma (",") nor semicolon (";") characters.')
@@ -189,9 +173,9 @@ class Builder:
             print(f'Creating non-existent vcpkg binary cache path "{vcpkg_binary_cache_path}"... ', end='')
             try:
                 vcpkg_binary_cache_path.mkdir(parents=True, exist_ok=True)
-                print(f'OK')
-            except Exception as ex:
-                print(f'Error: Cannot create path.')
+                print('OK')
+            except Exception:
+                print('Error: Cannot create path.')
                 exit(1)
         if self.config['vcpkg-binary-cache-readonly']:
             vcpkg_binary_cache_rw = 'read'
@@ -224,7 +208,7 @@ class Builder:
                       f'but found version {version_to_str(cmake_version)} in "{self.cmake_path}".')
                 exit(1)
         else:
-            print(f'Error: Cannot locate CMake executable.')
+            print('Error: Cannot locate CMake executable.')
             exit(1)
         print(f'OK (found version {version_to_str(cmake_version)} in "{self.cmake_path}")')
 
@@ -250,7 +234,7 @@ class Builder:
                       f'but found version {version_to_str(ninja_version)} in "{self.ninja_path}".')
                 exit(1)
         else:
-            print(f'Error: Cannot locate ninja executable.')
+            print('Error: Cannot locate ninja executable.')
             exit(1)
         print(f'OK (found version {version_to_str(ninja_version)} in "{self.ninja_path}")')
 
@@ -276,10 +260,9 @@ class Builder:
                       f'but found version {version_to_str(clang_format_version)} in "{self.clang_format_path}".')
                 exit(1)
         else:
-            print(f'Error: Cannot locate clang-format executable.')
+            print('Error: Cannot locate clang-format executable.')
             exit(1)
-        print(f'OK (found version ' +
-            f'{version_to_str(clang_format_version)} in "{self.clang_format_path}")')
+        print(f'OK (found version {version_to_str(clang_format_version)} in "{self.clang_format_path}")')
         
     def check_git(self):
         print('Checking availability and version of git... ', end='')
@@ -303,10 +286,9 @@ class Builder:
                       f'but found version {version_to_str(git_version)} in "{self.git_path}".')
                 exit(1)
         else:
-            print(f'Error: Cannot locate git executable.')
+            print('Error: Cannot locate git executable.')
             exit(1)
-        print(f'OK (found version ' +
-            f'{version_to_str(git_version)} in "{self.git_path}")')
+        print(f'OK (found version {version_to_str(git_version)} in "{self.git_path}")')
         
     def check_git_lfs(self):
         print('Checking availability and version of git lfs... ', end='')
@@ -330,10 +312,9 @@ class Builder:
                       f'but found version {version_to_str(git_lfs_version)} in "{self.git_lfs_path}".')
                 exit(1)
         else:
-            print(f'Error: Cannot locate git executable.')
+            print('Error: Cannot locate git executable.')
             exit(1)
-        print(f'OK (found version ' +
-            f'{version_to_str(git_lfs_version)} in "{self.git_lfs_path}")')
+        print(f'OK (found version {version_to_str(git_lfs_version)} in "{self.git_lfs_path}")')
 
     def check_vcpkg(self):
         print('Checking availability and version of vcpkg... ', end='')
@@ -368,7 +349,7 @@ class Builder:
             if not disable_telemetry_path.exists():
                 disable_telemetry_path.touch()
         else:
-            print(f'Cannot locate vcpkg executable.')
+            print('Cannot locate vcpkg executable.')
             exit(1)
         print(f'OK (found version {version_to_str(vcpkg_version)} in "{builder.vcpkg_exe_path}")')
 
@@ -383,13 +364,13 @@ class Builder:
         self.environment['PATH'] = path_delimiter.join(paths)
 
     def cmake(self):
-        build_path = base_path / \
+        build_path = self.base_path / \
             f'build-{self.triple()}-{self.cpp_build_system}{self.config["build-path-suffix"]}'
         cmake_path = build_path / 'cmake'
         os.makedirs(cmake_path, exist_ok=True)
-        toolchain_path = base_path / 'cmake' / \
+        toolchain_path = self.base_path / 'cmake' / \
             f'Toolchain-{self.triple()}.cmake'
-        install_path = base_path / "production"
+        install_path = self.base_path / "production"
 
         # Store a copy of the combined config in our temporary build folder.
         combined_config_filename = build_path / "config.json"
@@ -412,7 +393,7 @@ class Builder:
         with open(build_path / 'vcpkg-path.txt', 'w') as f:
             f.write(str(self.vcpkg_path))
 
-        command = [self.cmake_path, '-S', '.', '-B', build_path]
+        command = [self.cmake_path, '-S', '.', '-B', build_path.as_posix()]
         if self.cpp_build_system == 'ninja':
             command = command + [
                 '-G', 'Ninja Multi-Config',
@@ -449,7 +430,7 @@ class Builder:
             f'-DVCPKG_INSTALL_OPTIONS={";".join(vcpkg_install_options)}',
             f'-DX_VCPKG_ASSET_SOURCES:STRING={self.vcpkg_asset_sources}',
             f'-DVCPKG_BINARY_SOURCES:STRING={self.vcpkg_binary_sources}',
-            f'-DX_VCPKG_APPLOCAL_DEPS_INSTALL:BOOL=ON',
+            '-DX_VCPKG_APPLOCAL_DEPS_INSTALL:BOOL=ON',
             # '--debug-find',
         ]
         if self.config['cpp-toolset'].startswith('msvc'):
@@ -471,6 +452,15 @@ class Builder:
             print('Call `exit` to close sub-shell.')
             # Open a separate shell instance instead of calling CMake.
             command = ['cmd.exe', '/K']
+        else:
+            print(f'Calling {self.cmake_path} with the following arguments:')
+            i = 1
+            while i < len(command):
+                j = i + 1
+                while j < len(command) and not command[j].startswith('-'):
+                    j += 1
+                print('  ' + ' '.join(command[i:j]))
+                i = j
 
         with subprocess.Popen(command,
                               stdout = subprocess.PIPE,
@@ -488,7 +478,7 @@ class Builder:
                 if source_log_filename.exists():
                     print(f'Note: You can find vcpkg debug output in\n"{source_log_filename.as_posix()}".')
                     if not self.config["build-log-path"] is None:
-                        target_log_folder = Path(os.path.expanduser(self.config["build-log-path"]))
+                        target_log_folder = self._expand_path(self.config["build-log-path"])
                         if target_log_folder.exists():
                             target_log_folder = target_log_folder / self.environment['USERNAME']
                             os.makedirs(target_log_folder.as_posix(), exist_ok=True)
@@ -500,11 +490,21 @@ class Builder:
 
     def _load_config(self, config_filename):
         if not config_filename is Path:
-            config_filename = scripts_path / config_filename
+            config_filename = self.scripts_path / config_filename
         print(f'Loading config "{config_filename}"')
         with open(config_filename, "r") as config_file:
             self.config = Builder._update_config(self.config, json.load(config_file),
                                                  self.config_guard, config_filename.name)
+
+    def _expand_path(self, path: str) -> Path:
+        return Path(os.path.expanduser(path
+            .replace('\\', '/')
+            .replace('${base-path}', self.base_path.absolute().as_posix())
+            .replace('${target-architecture}', self.target_architecture)
+            .replace('${target-sub-architecture}', self.target_sub)
+            .replace('${target-system}', self.target_system)
+            .replace('${vendor}', self.vendor)
+            .replace('${cpp-runtime}', self.cpp_runtime)))
 
     @staticmethod
     def _update_config(config, new_config, config_guard, config_filename):
@@ -521,6 +521,8 @@ class Builder:
                 config[key] = new_value
         return config
 
+    scripts_path = Path()
+    base_path = Path()
     drop_to_shell = False
     config = {}
     config_guard = {}
@@ -557,7 +559,7 @@ class Builder:
 
 start = timer()
 try:
-    print(f'\033]2;Checking prerequisites ...\007')
+    print('\033]2;Checking prerequisites ...\007')
     # The check for Python is hard-coded.
     print('Checking version of python... ', end='')
     python_version = (sys.version_info.major, sys.version_info.minor)
@@ -578,10 +580,10 @@ try:
 
     # ToDo: Handle config['vcpkg-reuse-suffix'] and setup directory symlink/junction to reuse vcpkg installation folder.
 
-    print(f'\033]2;running cmake ...\007')
+    print('\033]2;running cmake ...\007')
     builder.cmake()
-    print(f'\033]2;done\007')
-except Exception as ex:
+    print('\033]2;done\007')
+except Exception:
     print('Error')
     traceback.print_exc()
     exit(1)
