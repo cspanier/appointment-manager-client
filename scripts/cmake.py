@@ -411,9 +411,13 @@ class Builder:
         if self.config["vcpkg-debug"]:
             vcpkg_install_options = vcpkg_install_options + ['--debug']
         if 'vcpkg-overlay-ports' in self.config:
-            vcpkg_install_options = vcpkg_install_options + [f'--overlay-ports={self.config["vcpkg-overlay-ports"]}']
+            vcpkg_install_options = vcpkg_install_options + [
+                f'--overlay-ports={self._expand_path(self.config["vcpkg-overlay-ports"])}'
+            ]
         if 'vcpkg-overlay-triplets' in self.config:
-            vcpkg_install_options = vcpkg_install_options + [f'--overlay-triplets={self.config["vcpkg-overlay-triplets"]};']
+            vcpkg_install_options = vcpkg_install_options + [
+                f'--overlay-triplets={self._expand_path(self.config["vcpkg-overlay-triplets"])};'
+            ]
         command = command + [
             f'-DCMAKE_TOOLCHAIN_FILE={toolchain_path}',
             # This not only removes the CMake default configuration type MinSizeRel from the list,
@@ -497,14 +501,21 @@ class Builder:
                                                  self.config_guard, config_filename.name)
 
     def _expand_path(self, path: str) -> Path:
-        return Path(os.path.expanduser(path
+        path = (path
             .replace('\\', '/')
-            .replace('${base-path}', self.base_path.absolute().as_posix())
-            .replace('${target-architecture}', self.target_architecture)
-            .replace('${target-sub-architecture}', self.target_sub)
-            .replace('${target-system}', self.target_system)
-            .replace('${vendor}', self.vendor)
-            .replace('${cpp-runtime}', self.cpp_runtime)))
+            .replace('${base-path}', self.base_path.absolute().as_posix()))
+
+        if not self.target_architecture is None:
+            path = path.replace('${target-architecture}', self.target_architecture)
+        if not self.target_sub is None:
+            path = path.replace('${target-sub-architecture}', self.target_sub)
+        if not self.target_system is None:
+            path = path.replace('${target-system}', self.target_system)
+        if not self.vendor is None:
+            path = path.replace('${vendor}', self.vendor)
+        if not self.cpp_runtime is None:
+            path = path.replace('${cpp-runtime}', self.cpp_runtime)
+        return Path(os.path.expanduser(path))
 
     @staticmethod
     def _update_config(config, new_config, config_guard, config_filename):

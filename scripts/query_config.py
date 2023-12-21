@@ -3,15 +3,21 @@
 import argparse
 import collections.abc
 import json
+import os
 from pathlib import Path
 
 scripts_path = Path(__file__).parent.absolute()
+base_path = scripts_path.parent
 
 def update_config(old_config, new_config):
     for key, new_value in new_config.items():
         if isinstance(new_value, collections.abc.Mapping):
             old_config[key] = update_config(old_config.get(key, {}), new_value)
         else:
+            if isinstance(new_value, str):
+                if str(key).endswith('-path'):
+                    new_value = os.path.expanduser(new_value).replace('\\', '/')
+                new_value = new_value.replace('${base-path}', base_path.absolute().as_posix())
             old_config[key] = new_value
     return old_config
 
