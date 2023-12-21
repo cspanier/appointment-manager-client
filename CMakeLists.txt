@@ -105,5 +105,3 @@ find_package(Boost ${Boost_VERSION} REQUIRED
   )
 
 ##############################################################################
-
-add_subdirectory(appointment)
