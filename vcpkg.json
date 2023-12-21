@@ -20,10 +20,12 @@
         "harfbuzz",
         "icu",
         "jpeg",
+        "opengl",
         "openssl",
         "pcre2",
         "png",
         "thread",
+        "vulkan",
         "widgets",
         "zstd"
       ]
