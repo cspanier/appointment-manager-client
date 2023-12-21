@@ -1,3 +1,4 @@
 .cmake_menu.json
 .venv/
 vswhere*
+config-user-*.json
